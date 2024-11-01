@@ -1,0 +1,9 @@
+source;share/stl_inc/hook/pythonpath.ps1
+source;share/stl_inc/hook/pythonpath.dsv
+source;share/stl_inc/hook/pythonpath.sh
+source;share/stl_inc/hook/ament_prefix_path.ps1
+source;share/stl_inc/hook/ament_prefix_path.dsv
+source;share/stl_inc/hook/ament_prefix_path.sh
+source;../../build/stl_inc/share/stl_inc/hook/pythonpath_develop.ps1
+source;../../build/stl_inc/share/stl_inc/hook/pythonpath_develop.dsv
+source;../../build/stl_inc/share/stl_inc/hook/pythonpath_develop.sh
