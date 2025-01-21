@@ -99,6 +99,10 @@ uint8_t mode_select_3;
 const uint8_t joystick_idle_min = 100; // Minimum idle value
 const uint8_t joystick_idle_max = 144; // Maximum idle value
 
+int traversal_toggle = 1;
+int robarm_toggle = 0;
+int science_toggle = 0;
+
 uint8_t payload[13];
 
 #define BUFFER_SIZE 5
@@ -245,6 +249,29 @@ void loop() {
     // }
     // Serial.println();
   }
+
+//feedback
+  feedback_assignFromLoRa();
+}
+
+void feedback_assignFromLoRa() {
+  int packetSize = LoRa.parsePacket();
+  if (packetSize == 0) return;
+
+  traversal_toggle = LoRa.read();
+  robarm_toggle = LoRa.read();
+  science_toggle = LoRa.read();
+
+  Serial.println("### feedback ###");
+  Serial.println("traversal toggle: " + String(traversal_toggle));
+  Serial.println("robotic arm toggle: " + String(robarm_toggle));
+  Serial.println("science toggle: " + String(science_toggle));
+
+
+  // Print RSSI (signal strength)
+  Serial.print("RSSI: ");
+  Serial.println(LoRa.packetRssi());
+  Serial.println(LoRa.packetFrequencyError());
 }
 
 void assignToPayload(uint8_t payload[13]) {

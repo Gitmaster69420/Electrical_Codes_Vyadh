@@ -201,6 +201,13 @@ void loop() {
     uart.println(prnt);
     Serial.println(prnt);
   }
+
+//feedback
+  LoRa.beginPacket();
+  LoRa.write(traversal_toggle);
+  LoRa.write(robarm_toggle);
+  LoRa.write(science_toggle);
+  LoRa.endPacket();
 }
 
 void assignFromPayload(uint8_t payload[13]) {
