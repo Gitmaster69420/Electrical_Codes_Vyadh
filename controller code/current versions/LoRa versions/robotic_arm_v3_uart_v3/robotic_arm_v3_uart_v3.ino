@@ -2,8 +2,8 @@
 #define TXD2 2
 
 HardwareSerial uart(2);
-String previous_recievedString = "";
-String recievedString = "";
+String previous_recievedString = "x";
+String recievedString = "x";
 char inputChar = 'x';
 
 //Linear actuators
@@ -274,9 +274,10 @@ void killMotors() {
   ledcWrite(p1, 0);
   ledcWrite(p2, 0);  
   ledcWrite(p3, 0);
-  for(pwm_tt; pwm_tt > 0; pwm_tt = pwm_tt - 1){
-    ledcWrite(pwmtt, pwm_tt);
-  }
+  // for(pwm_tt; pwm_tt > 0; pwm_tt = pwm_tt - 5){
+  //   ledcWrite(pwmtt, pwm_tt);
+  //   delay(60);
+  // }
   ledcWrite(pwmtt, 0);
   ledcWrite(pwmw1, 0); 
   ledcWrite(pwmw2, 0);  
@@ -337,12 +338,8 @@ void loop() {
   
 
     if (recievedString != previous_recievedString) {
-      Serial.println("change");
-      previous_recievedString = recievedString;
-      
-    }
-    else {
       inputChar = recievedString[0];
+      previous_recievedString = recievedString;
     }
     // else {
     //   if (recievedString.length() >= 2) {
@@ -409,20 +406,28 @@ void loop() {
         break;
         
       case 'r':
-        digitalWrite(dirtt, HIGH);
-        for(pwm_tt; pwm_tt > 80; pwm_tt = pwm_tt + 5){
+        for(pwm_tt; pwm_tt > 0; pwm_tt = pwm_tt - 5){
           ledcWrite(pwmtt, pwm_tt);
-          delay(5);
+          delay(40);
+        }
+        digitalWrite(dirtt, HIGH);
+        for(pwm_tt; pwm_tt < 80; pwm_tt = pwm_tt + 5){
+          ledcWrite(pwmtt, pwm_tt);
+          delay(60);
         }
         Serial.println("r");
         ledcWrite(pwmtt, pwm_tt);
         break;
 
       case 'f':
+        for(pwm_tt; pwm_tt > 0; pwm_tt = pwm_tt - 5){
+          ledcWrite(pwmtt, pwm_tt);
+          delay(40);
+        }
         digitalWrite(dirtt, LOW);
         for(pwm_tt; pwm_tt > 100; pwm_tt = pwm_tt + 5){
           ledcWrite(pwmtt, pwm_tt);
-          delay(5);
+          delay(60);
         } 
         Serial.println("f");
         ledcWrite(pwmtt, pwm_tt);

@@ -24,7 +24,7 @@ uint8_t mode_select_3 = 0;
 //toggles
 
 uint8_t prev_robotic_arm_position = 0;
-uint8_t prev_mode_select = 0;
+uint8_t prev_mode_select = 1;
 uint8_t prev_mode_select_2 = 0;
 uint8_t prev_mode_select_3 = 0;
 
@@ -99,27 +99,35 @@ void loop() {
     }
     if (traversal_toggle) {
       robarm_toggle = 0;
+      prev_mode_select_2 = 0;
+      science_toggle = 0;
+      prev_mode_select_3 = 0;
     }
   }
 
-  if (mode_select_2 == 1){
+  else if (mode_select_2 == 1){
     if (mode_select_2 != prev_mode_select_2) {
       robarm_toggle = !robarm_toggle;
       prev_mode_select_2 = mode_select_2;
     }
     if (robarm_toggle) {
       traversal_toggle = 0;
+      prev_mode_select = 0;
+      science_toggle = 0;
+      prev_mode_select_3 = 0;
     }
   }
 
-  if (mode_select_3 == 1) {
+  else if (mode_select_3 == 1) {
     if (mode_select_3 != prev_mode_select_3) {
       science_toggle = !science_toggle;
       prev_mode_select_3 = mode_select_3;
     }
     if (science_toggle) {
       traversal_toggle = 0;
+      prev_mode_select = 0;
       robarm_toggle = 0;
+      prev_mode_select_2 = 0;
     }
   }
 //
@@ -195,13 +203,13 @@ void loop() {
   }
 
 //science kit
-  if(robarm_toggle) {
+  if(science_toggle) {
     Serial.println("sending science kit");
     String prnt = encodeScienceKit();
     uart.println(prnt);
     Serial.println(prnt);
   }
-
+  
 //feedback
   LoRa.beginPacket();
   LoRa.write(traversal_toggle);
@@ -392,30 +400,15 @@ String encodeRoboticArm() {
     char vertical3Command = getJoystickCommand(joystick3_y, 'x', 'w', 's');
 
     if (robotic_arm_position >= 160 && robotic_arm_position <= 180) {
-      robotic_arm_position_timer++;
-      Serial.println("command timer: " + String(robotic_arm_position_timer));
-      if (robotic_arm_position_timer > 5) {
-        robotic_arm_position_timer = 0;
-        return "1";
-      }
+      return "1";
     }
 
     else if (robotic_arm_position >= 110 && robotic_arm_position <= 130) {
-      robotic_arm_position_timer++;
-      Serial.println("command timer: " + String(robotic_arm_position_timer));
-      if (robotic_arm_position_timer > 5) {
-        robotic_arm_position_timer = 0;
-        return "2";
-      }
+      return "2";
     }
 
     else if (robotic_arm_position >= 25 && robotic_arm_position <= 40) {
-      robotic_arm_position_timer++;
-      Serial.println("command timer: " + String(robotic_arm_position_timer));
-      if (robotic_arm_position_timer > 5) {
-        robotic_arm_position_timer = 0;
-        return "3";
-      }
+      return "3";
     }
 
     else if (Button3 == 0) {
@@ -506,6 +499,7 @@ String encodeRoboticArm() {
     }
   }
 
+  robotic_arm_position_timer = 0;
   return "x";
 }
 

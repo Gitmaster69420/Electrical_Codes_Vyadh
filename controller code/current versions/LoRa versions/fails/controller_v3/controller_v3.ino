@@ -96,12 +96,15 @@ uint8_t mode_select;
 uint8_t mode_select_2;
 uint8_t mode_select_3;
 
-const uint8_t joystick_idle_min = 100; // Minimum idle value
-const uint8_t joystick_idle_max = 144; // Maximum idle value
+const uint8_t joystick_idle_min = 96; // Minimum idle value
+const uint8_t joystick_idle_max = 148; // Maximum idle value
+
+unsigned long last_active_time = 0; // Tracks the last time activity was detected
+const unsigned long idle_timeout = 50; // Delay time in milliseconds
 
 uint8_t payload[13];
 
-#define BUFFER_SIZE 5
+#define BUFFER_SIZE 2
 
 uint8_t joystick1_x_buffer[BUFFER_SIZE] = {0};
 uint8_t joystick1_y_buffer[BUFFER_SIZE] = {0};
@@ -209,13 +212,13 @@ void loop() {
   //Serial.println("others avg");
   //robotic_arm_position = joystick_movingAverage(robotic_arm_position_buffer, robotic_arm_position);
   mode_select = button_movingAverage(mode_select_buffer, mode_select);
-  mode_select_2 = button_movingAverage(mode_select_buffer, mode_select_2);
-  mode_select_3 = button_movingAverage(mode_select_buffer, mode_select_3);
+  mode_select_2 = button_movingAverage(mode_select_2_buffer, mode_select_2);
+  mode_select_3 = button_movingAverage(mode_select_3_buffer, mode_select_3);
 
-  printValues();
+  
 
     // Check for significant changes
-  bool joysticks_untouched = 
+  bool joysticks_idle_now = 
       (joystick1_x >= joystick_idle_min && joystick1_x <= joystick_idle_max) &&
       (joystick1_y >= joystick_idle_min && joystick1_y <= joystick_idle_max) &&
       (joystick2_x >= joystick_idle_min && joystick2_x <= joystick_idle_max) &&
@@ -223,27 +226,26 @@ void loop() {
       (joystick3_x >= joystick_idle_min && joystick3_x <= joystick_idle_max) &&
       (joystick3_y >= joystick_idle_min && joystick3_y <= joystick_idle_max);
 
-  bool buttons_and_slides_untouched =
+  bool buttons_and_slides_idle_now =
       (button1 == 1) && (button2 == 1) && (button3 == 1) &&
       (robotic_arm_position == 0) && (mode_select == 0) && (mode_select_2 == 0) && (mode_select_3 == 0);
 
   // Only send data if there's a change
-  if (!joysticks_untouched || !buttons_and_slides_untouched) {
-    // Assign updated values to payload
-    assignToPayload(payload);
 
-    // Send data via LoRa
+  if (!joysticks_idle_now || !buttons_and_slides_idle_now) {
+    last_active_time = millis(); // Update the last activity timestamp
+  }
+
+  if (millis() - last_active_time < idle_timeout) {
+
+    assignToPayload(payload);
+    printValues();
+
     LoRa.beginPacket();
     LoRa.write(payload, sizeof(payload));
     LoRa.endPacket();
 
-    // Print updated values for debugging
     Serial.println("Updated values sent: ");
-    // for (int i = 0; i < 11; i++) {
-    //   Serial.print(payload[i]);
-    //   Serial.println(" ");
-    // }
-    // Serial.println();
   }
 }
 

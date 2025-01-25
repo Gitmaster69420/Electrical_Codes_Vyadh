@@ -99,6 +99,9 @@ uint8_t mode_select_3;
 const uint8_t joystick_idle_min = 100; // Minimum idle value
 const uint8_t joystick_idle_max = 144; // Maximum idle value
 
+unsigned long last_active_time = 0; // Tracks the last time activity was detected
+const unsigned long idle_timeout = 500; // Delay time in milliseconds
+
 uint8_t payload[13];
 
 void loop() {
@@ -123,10 +126,9 @@ void loop() {
   mode_select_2 = digitalRead(mde_slct_2);
   mode_select_3 = digitalRead(mde_slct_3);
 
-  printValues();
 
     // Check for significant changes
-  bool joysticks_untouched = 
+  bool joysticks_idle_now = 
       (joystick1_x >= joystick_idle_min && joystick1_x <= joystick_idle_max) &&
       (joystick1_y >= joystick_idle_min && joystick1_y <= joystick_idle_max) &&
       (joystick2_x >= joystick_idle_min && joystick2_x <= joystick_idle_max) &&
@@ -134,15 +136,20 @@ void loop() {
       (joystick3_x >= joystick_idle_min && joystick3_x <= joystick_idle_max) &&
       (joystick3_y >= joystick_idle_min && joystick3_y <= joystick_idle_max);
 
-  bool buttons_and_slides_untouched =
+  bool buttons_and_slides_idle_now =
       (Button1 == 1) && (Button2 == 1) && (Button3 == 1) &&
       (robotic_arm_position == 0) && (mode_select == 0) && (mode_select_2 == 0) && (mode_select_3 == 0);
 
+
+  if (!joysticks_idle_now || !buttons_and_slides_idle_now) {
+    last_active_time = millis(); // Update the last activity timestamp
+  }
+
   // Only send data if there's a change
-  if (!joysticks_untouched || !buttons_and_slides_untouched) {
+  if (millis() - last_active_time < idle_timeout) {
+    printValues();
     // Assign updated values to payload
     assignToPayload(payload);
-
     // Send data via LoRa
     LoRa.beginPacket();
     LoRa.write(payload, sizeof(payload));
@@ -150,11 +157,6 @@ void loop() {
 
     // Print updated values for debugging
     Serial.println("Updated values sent: ");
-    // for (int i = 0; i < 11; i++) {
-    //   Serial.print(payload[i]);
-    //   Serial.println(" ");
-    // }
-    // Serial.println();
   }
 }
 

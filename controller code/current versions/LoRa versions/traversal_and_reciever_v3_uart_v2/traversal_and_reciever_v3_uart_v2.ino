@@ -24,7 +24,7 @@ uint8_t mode_select_3 = 0;
 //toggles
 
 uint8_t prev_robotic_arm_position = 0;
-uint8_t prev_mode_select = 0;
+uint8_t prev_mode_select = 1;
 uint8_t prev_mode_select_2 = 0;
 uint8_t prev_mode_select_3 = 0;
 
@@ -33,8 +33,8 @@ uint8_t payload[13];
 
 
 int fast = 255;
-int slow = 128;
-int speed = 0;
+int slow = 135;
+int speed;
 
 int robotic_arm_position_timer = 0;
 
@@ -89,7 +89,7 @@ void loop() {
 
   assignFromLoRa();
   assignFromPayload(payload);
-  printValues();
+  //printValues();
 
 //mode select
   if (mode_select == 1) {
@@ -99,27 +99,35 @@ void loop() {
     }
     if (traversal_toggle) {
       robarm_toggle = 0;
+      prev_mode_select_2 = 0;
+      science_toggle = 0;
+      prev_mode_select_3 = 0;
     }
   }
 
-  if (mode_select_2 == 1){
+  else if (mode_select_2 == 1){
     if (mode_select_2 != prev_mode_select_2) {
       robarm_toggle = !robarm_toggle;
       prev_mode_select_2 = mode_select_2;
     }
     if (robarm_toggle) {
       traversal_toggle = 0;
+      prev_mode_select = 0;
+      science_toggle = 0;
+      prev_mode_select_3 = 0;
     }
   }
 
-  if (mode_select_3 == 1) {
+  else if (mode_select_3 == 1) {
     if (mode_select_3 != prev_mode_select_3) {
       science_toggle = !science_toggle;
       prev_mode_select_3 = mode_select_3;
     }
     if (science_toggle) {
       traversal_toggle = 0;
+      prev_mode_select = 0;
       robarm_toggle = 0;
+      prev_mode_select_2 = 0;
     }
   }
 //
@@ -195,12 +203,14 @@ void loop() {
   }
 
 //science kit
-  if(robarm_toggle) {
+  if(science_toggle) {
     Serial.println("sending science kit");
     String prnt = encodeScienceKit();
     uart.println(prnt);
     Serial.println(prnt);
   }
+
+  Serial.println(speed);
 }
 
 void assignFromPayload(uint8_t payload[13]) {
@@ -270,6 +280,8 @@ void resetPayload(uint8_t payload[13]) {
   payload[12] = 128;
 }
 
+int speed_increase = 15;
+int speed_delay = 15;
 
 void forward(int select_speed) { //add a speed argument when speed change is decided
   //speed = map(speed, 200, 255, 0, 255);
@@ -277,17 +289,22 @@ void forward(int select_speed) { //add a speed argument when speed change is dec
   digitalWrite(D2, LOW);
 
   if (select_speed == fast) {
-    for (speed; speed <= fast; speed += 10) {
+    for (speed; speed < fast; speed += speed_increase) {
       analogWrite(P1, speed);
       analogWrite(P2, speed);
+      Serial.println(speed);
+      delay(speed_delay);
     }
   }
 
   else if (select_speed == slow) {
-    for (speed; speed <= slow; speed += 10) {
-      analogWrite(P1, speed);
-      analogWrite(P2, speed);
-    }
+    //for (speed; speed < slow; speed += speed_increase) {
+      speed = slow;
+      analogWrite(P1, slow);
+      analogWrite(P2, slow);
+      Serial.println(speed);
+      //delay(speed_delay);
+    //}
   }
 }
 
@@ -297,17 +314,20 @@ void backward(int select_speed) { //add a speed argument when speed change is de
   digitalWrite(D2, HIGH);
 
   if (select_speed == fast) {
-    for (speed; speed <= fast; speed += 10) {
+    for (speed; speed < fast; speed += speed_increase) {
       analogWrite(P1, speed);
       analogWrite(P2, speed);
+      Serial.println(speed);
+      delay(speed_delay);
     }
   }
 
   else if (select_speed == slow) {
-    for (speed; speed <= slow; speed += 10) {
-      analogWrite(P1, speed);
-      analogWrite(P2, speed);
-    }
+    speed = slow;
+    analogWrite(P1, speed);
+    analogWrite(P2, speed);
+    Serial.println(speed);
+    delay(speed_delay);
   }
 }
 
@@ -318,17 +338,20 @@ void right(int select_speed) { //add a speed argument when speed change is decid
   digitalWrite(D2, HIGH);
 
   if (select_speed == fast) {
-    for (speed; speed <= fast; speed += 10) {
+    for (speed; speed < fast; speed += speed_increase) {
       analogWrite(P1, speed);
       analogWrite(P2, speed);
+      Serial.println(speed);
+      delay(speed_delay);
     }
   }
 
   else if (select_speed == slow) {
-    for (speed; speed <= slow; speed += 10) {
-      analogWrite(P1, speed);
-      analogWrite(P2, speed);
-    }
+    speed = slow;
+    analogWrite(P1, speed);
+    analogWrite(P2, speed);
+    Serial.println(speed);
+    delay(speed_delay);
   }
 }
 
@@ -339,17 +362,21 @@ void left(int select_speed) { //add a speed argument when speed change is decide
   digitalWrite(D2, LOW);
 
   if (select_speed == fast) {
-    for (speed; speed <= fast; speed += 10) {
+    for (speed; speed < fast; speed += speed_increase) {
       analogWrite(P1, speed);
       analogWrite(P2, speed);
+      Serial.println(speed);
+      delay(speed_delay);
     }
   }
 
+
   else if (select_speed == slow) {
-    for (speed; speed <= slow; speed += 10) {
-      analogWrite(P1, speed);
-      analogWrite(P2, speed);
-    }
+    speed = slow;
+    analogWrite(P1, speed);
+    analogWrite(P2, speed);
+    Serial.println(speed);
+    delay(speed_delay);
   }
 }
 
@@ -359,10 +386,16 @@ void stop() { //add a speed argument when speed change is decided
   digitalWrite(D1, HIGH);
   digitalWrite(D2, HIGH);
 
-  for (speed; speed >= 0; speed -= 10) {
-    analogWrite(P1, speed);
-    analogWrite(P2, speed);
-  }
+  // for (speed; speed > 0; speed -= speed_increase) {
+  // Serial.println(speed);
+  // analogWrite(P1, speed);
+  // analogWrite(P2, speed);
+  // delay(2*speed_delay);
+  // }
+
+  analogWrite(P1, 0);
+  analogWrite(P2, 0);
+  speed = 0;
 }
 
 
@@ -385,30 +418,15 @@ String encodeRoboticArm() {
     char vertical3Command = getJoystickCommand(joystick3_y, 'x', 'w', 's');
 
     if (robotic_arm_position >= 160 && robotic_arm_position <= 180) {
-      robotic_arm_position_timer++;
-      Serial.println("command timer: " + String(robotic_arm_position_timer));
-      if (robotic_arm_position_timer > 5) {
-        robotic_arm_position_timer = 0;
-        return "1";
-      }
+      return "1";
     }
 
     else if (robotic_arm_position >= 110 && robotic_arm_position <= 130) {
-      robotic_arm_position_timer++;
-      Serial.println("command timer: " + String(robotic_arm_position_timer));
-      if (robotic_arm_position_timer > 5) {
-        robotic_arm_position_timer = 0;
-        return "2";
-      }
+      return "2";
     }
 
     else if (robotic_arm_position >= 25 && robotic_arm_position <= 40) {
-      robotic_arm_position_timer++;
-      Serial.println("command timer: " + String(robotic_arm_position_timer));
-      if (robotic_arm_position_timer > 5) {
-        robotic_arm_position_timer = 0;
-        return "3";
-      }
+      return "3";
     }
 
     else if (Button3 == 0) {
@@ -499,6 +517,7 @@ String encodeRoboticArm() {
     }
   }
 
+  robotic_arm_position_timer = 0;
   return "x";
 }
 
