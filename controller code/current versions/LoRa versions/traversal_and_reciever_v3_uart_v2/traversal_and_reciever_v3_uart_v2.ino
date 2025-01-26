@@ -34,7 +34,7 @@ uint8_t payload[13];
 
 int fast = 255;
 int slow = 135;
-int speed;
+int speed = 0;
 
 int robotic_arm_position_timer = 0;
 
@@ -60,7 +60,7 @@ HardwareSerial uart(1);
 void setup() {
   Serial.begin(115200);
   Serial.println("1");
-  uart.begin(115200, SERIAL_8N1, RXD2, TXD2);
+  uart.begin(921600, SERIAL_8N1, RXD2, TXD2);
   Serial.println("2"); 
 
   Serial.println("LoRa Receiver Setup");
@@ -131,9 +131,9 @@ void loop() {
     }
   }
 //
-  Serial.println("traversal toggle: " + String(traversal_toggle));
-  Serial.println("robotic arm toggle: " + String(robarm_toggle));
-  Serial.println("science toggle: " + String(science_toggle));
+  //Serial.println("traversal toggle: " + String(traversal_toggle));
+  //Serial.println("robotic arm toggle: " + String(robarm_toggle));
+  //Serial.println("science toggle: " + String(science_toggle));
 
 //traversal
   if (traversal_toggle) {
@@ -197,17 +197,17 @@ void loop() {
 //robotic arm
   if(robarm_toggle) {
     Serial.println("sending robotic arm");
-    String prnt = encodeRoboticArm();
-    uart.println(prnt);
-    Serial.println(prnt);
+    char prnt = encodeRoboticArm();
+    uart.write(prnt);
+    Serial.println(String(prnt));
   }
 
 //science kit
   if(science_toggle) {
     Serial.println("sending science kit");
-    String prnt = encodeScienceKit();
-    uart.println(prnt);
-    Serial.println(prnt);
+    char prnt = encodeScienceKit();
+    uart.write(prnt);
+    Serial.println(String(prnt));
   }
 
   Serial.println(speed);
@@ -249,7 +249,7 @@ void assignFromLoRa() {
     // Print RSSI (signal strength)
     Serial.print("RSSI: ");
     Serial.println(LoRa.packetRssi());
-    Serial.println(LoRa.packetFrequencyError());
+    //Serial.println(LoRa.packetFrequencyError());
   }
 }
 
@@ -408,7 +408,7 @@ char getJoystickCommand(uint8_t a, char axis, char positive, char negative) {
   return axis; // Neutral position
 }
 
-String encodeRoboticArm() {
+char encodeRoboticArm() {
     char horizontal1Command = getJoystickCommand(joystick1_x, 'x', 'f', 'r');
     char horizontal2Command = getJoystickCommand(joystick2_x, 'x', 'y', 'h');
     char horizontal3Command = getJoystickCommand(joystick3_x, 'x', 'd', 'a');
@@ -418,33 +418,33 @@ String encodeRoboticArm() {
     char vertical3Command = getJoystickCommand(joystick3_y, 'x', 'w', 's');
 
     if (robotic_arm_position >= 160 && robotic_arm_position <= 180) {
-      return "1";
+      return '1';
     }
 
     else if (robotic_arm_position >= 110 && robotic_arm_position <= 130) {
-      return "2";
+      return '2';
     }
 
     else if (robotic_arm_position >= 25 && robotic_arm_position <= 40) {
-      return "3";
+      return '3';
     }
 
     else if (Button3 == 0) {
-      return "i";
+      return 'i';
     }
 
     else if (Button2 == 0) {
-      return "k";
+      return 'k';
     }
 
     else {
       switch (vertical1Command) {
         case 't':
-          return "t";
+          return 't';
           break;
 
         case 'g':
-          return "g";
+          return 'g';
           break;
 
         case 'x':
@@ -453,11 +453,11 @@ String encodeRoboticArm() {
 
       switch (horizontal1Command) {
         case 'r':
-          return "r";
+          return 'r';
           break;
 
         case 'f':
-          return "f";
+          return 'f';
           break;
 
         case 'x':
@@ -466,11 +466,11 @@ String encodeRoboticArm() {
 
       switch (horizontal2Command) {
         case 'y':
-          return "y";
+          return 'y';
           break;
 
         case 'h':
-          return "h";
+          return 'h';
           break;
 
         case 'x':
@@ -479,11 +479,11 @@ String encodeRoboticArm() {
 
       switch (vertical2Command) {
         case 'u':
-          return "u";
+          return 'u';
           break;
 
         case 'j':
-          return "j";
+          return 'j';
           break;
 
         case 'x':
@@ -492,11 +492,11 @@ String encodeRoboticArm() {
 
       switch (vertical3Command) {
         case 'w':
-          return "w";
+          return 'w';
           break;
 
         case 's':
-          return "s";
+          return 's';
           break;
 
         case 'x':
@@ -505,11 +505,11 @@ String encodeRoboticArm() {
 
     switch (horizontal3Command) {
       case 'a':
-        return "a";
+        return 'a';
         break;
 
       case 'd':
-        return "d";
+        return 'd';
         break;
 
       case 'x':
@@ -518,17 +518,17 @@ String encodeRoboticArm() {
   }
 
   robotic_arm_position_timer = 0;
-  return "x";
+  return 'x';
 }
 
-String encodeScienceKit() {
+char encodeScienceKit() {
   if (Button1 == 0) {
-      return "p";
+      return 'p';
     }
 
   else if (Button2 == 0) {
-    return "l";
+    return 'l';
   }
   
-  return "x";
+  return 'x';
 }
